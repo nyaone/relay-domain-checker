@@ -16,7 +16,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	domainsList := strings.Split(strings.Replace(string(domains), "\r", "", -1), "\n")
+	fileLines := strings.Split(strings.Replace(string(domains), "\r", "", -1), "\n")
 
 	var unresolvedDomains []string
 	var notFunctioningDomains []string
@@ -25,13 +25,13 @@ func main() {
 
 	var wg sync.WaitGroup
 
-	for _, domain := range domainsList {
+	for _, line := range fileLines {
 
-		if !strings.Contains(domain, " ") && strings.Contains(domain, ".") {
+		if strings.Contains(line, "[*]") {
 			// Is domain
 			wg.Add(1)
 
-			domain := domain
+			domain := strings.Replace(line, "[*] ", "", 1)
 
 			go func() {
 				defer wg.Done()
