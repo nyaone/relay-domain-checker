@@ -196,7 +196,7 @@ func InheritStatus(oldList ResultErrRecord, currentList []string, currentTime ti
 		if len(oldList) > 0 {
 			for oldErrDomain, oldErrSince := range oldList {
 				if oldErrDomain == errDomain {
-					newList[errDomain] = oldErrSince
+					dErr = oldErrSince
 					break
 				}
 			}
