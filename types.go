@@ -1,5 +1,7 @@
 package main
 
+import "time"
+
 // NodeInfoSchema : Refer to https://nodeinfo.diaspora.software/schema.html
 type NodeInfoSchema struct {
 	//Version  string `json:"version"`
@@ -31,16 +33,16 @@ type NodeInfoList struct {
 }
 
 type ErrorStatusWithCode struct {
-	Offset int64 `json:"offset"`
-	Code   int   `json:"code"`
+	Since time.Time `json:"since"`
+	Code  int       `json:"code"`
 }
 
-type ResultErrRecord = map[string]int64
+type ResultErrRecord = map[string]time.Time
 type ResultErrRecordWithCode = map[string]ErrorStatusWithCode
 type ResultValidWithNodeInfo = map[string]NodeInfoSchema
 
 type ResultFileFormat struct {
-	CollectedAt int64 `json:"collected_at"`
+	CollectedAt time.Time `json:"collected_at"`
 
 	// Not working
 	Unresolved     ResultErrRecord         `json:"unresolved"`
