@@ -1,3 +1,4 @@
 .idea/
 
-*.txt
+domains.txt
+domains.json
