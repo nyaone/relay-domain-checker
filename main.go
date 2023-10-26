@@ -145,6 +145,8 @@ func main() {
 
 	// Read last time result
 	var lastTimeResult ResultFileFormat
+	currentTime := time.Now().Unix() // To unix seconds
+	timeOffset := int64(0)
 
 	if _, err = os.Stat(ResultSaveFileName); err != nil {
 		log.Printf("Failed to check last time result file with error: %v.", err)
@@ -152,20 +154,21 @@ func main() {
 		log.Printf("Failed to read last time result file with error: %v.", err)
 	} else if err = json.Unmarshal(lastTimeResultBytes, &lastTimeResult); err != nil {
 		log.Printf("Failed to unmarshal last time result file with error: %v.", err)
+	} else {
+		timeOffset = currentTime - lastTimeResult.CollectedAt
 	}
 
 	// Generate current result file (json)
-	currentTime := time.Now()
 	var result ResultFileFormat
 	result.CollectedAt = currentTime
 
-	result.Unresolved = InheritStatus(lastTimeResult.Unresolved, unresolvedList, currentTime)
-	result.NotFunctioning = InheritStatus(lastTimeResult.NotFunctioning, notFunctioningList, currentTime)
-	result.WrongCode = InheritStatusAndCode(lastTimeResult.WrongCode, wrongCodeList, currentTime)
+	result.Unresolved = InheritStatus(lastTimeResult.Unresolved, unresolvedList, timeOffset)
+	result.NotFunctioning = InheritStatus(lastTimeResult.NotFunctioning, notFunctioningList, timeOffset)
+	result.WrongCode = InheritStatusAndCode(lastTimeResult.WrongCode, wrongCodeList, timeOffset)
 
-	result.MisformattedNodeInfoList = InheritStatus(lastTimeResult.MisformattedNodeInfoList, misformattedNodeInfoListList, currentTime)
-	result.NoAvailableNodeInfoSchema = InheritStatus(lastTimeResult.NoAvailableNodeInfoSchema, noAvailableNodeInfoSchemaList, currentTime)
-	result.MisformattedNodeInfoSchema = InheritStatus(lastTimeResult.MisformattedNodeInfoSchema, misformattedNodeInfoSchemaList, currentTime)
+	result.MisformattedNodeInfoList = InheritStatus(lastTimeResult.MisformattedNodeInfoList, misformattedNodeInfoListList, timeOffset)
+	result.NoAvailableNodeInfoSchema = InheritStatus(lastTimeResult.NoAvailableNodeInfoSchema, noAvailableNodeInfoSchemaList, timeOffset)
+	result.MisformattedNodeInfoSchema = InheritStatus(lastTimeResult.MisformattedNodeInfoSchema, misformattedNodeInfoSchemaList, timeOffset)
 
 	validResults := make(ResultValidWithNodeInfo)
 	for _, validDomain := range validList {
@@ -188,15 +191,15 @@ func main() {
 
 }
 
-func InheritStatus(oldList ResultErrRecord, currentList []string, currentTime time.Time) ResultErrRecord {
+func InheritStatus(oldList ResultErrRecord, currentList []string, timeOffset int64) ResultErrRecord {
 	newList := make(ResultErrRecord)
 	for _, errDomain := range currentList {
-		dErr := currentTime
+		dErr := timeOffset
 		// Find if it's first time or has been a while
 		if len(oldList) > 0 {
-			for oldErrDomain, oldErrSince := range oldList {
+			for oldErrDomain, oldErrOffset := range oldList {
 				if oldErrDomain == errDomain {
-					newList[errDomain] = oldErrSince
+					dErr += oldErrOffset
 					break
 				}
 			}
@@ -206,18 +209,18 @@ func InheritStatus(oldList ResultErrRecord, currentList []string, currentTime ti
 	return newList
 }
 
-func InheritStatusAndCode(oldList ResultErrRecordWithCode, currentList []domainWithErrorCode, currentTime time.Time) ResultErrRecordWithCode {
+func InheritStatusAndCode(oldList ResultErrRecordWithCode, currentList []domainWithErrorCode, timeOffset int64) ResultErrRecordWithCode {
 	newList := make(ResultErrRecordWithCode)
 	for _, errDomain := range currentList {
 		dErr := ErrorStatusWithCode{
-			Code:  errDomain.Code,
-			Since: currentTime,
+			Code:   errDomain.Code,
+			Offset: timeOffset,
 		}
 		// Find if it's first time or has been a while
 		if len(oldList) > 0 {
 			for oldErrDomain, oldErrRecord := range oldList {
 				if oldErrDomain == errDomain.Domain && oldErrRecord.Code == errDomain.Code {
-					dErr.Since = oldErrRecord.Since
+					dErr.Offset += oldErrRecord.Offset
 					break
 				}
 			}
