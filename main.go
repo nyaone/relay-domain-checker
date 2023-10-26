@@ -15,6 +15,7 @@ import (
 const (
 	RelayListDomainsFileName = "domains.txt"
 	ResultSaveFileName       = "domains.json"
+	RequestTimeout           = 10 * time.Second
 )
 
 func main() {
@@ -61,7 +62,10 @@ func main() {
 
 				// Try get nodeinfo
 				wellknownNodeinfo := fmt.Sprintf("https://%s/.well-known/nodeinfo", domain)
-				resp, err := http.Get(wellknownNodeinfo)
+
+				resp, err := (&http.Client{
+					Timeout: RequestTimeout,
+				}).Get(wellknownNodeinfo)
 				if err != nil {
 					notFunctioningList = append(notFunctioningList, domain)
 					log.Printf("[%s] is not functioning with error: %v.", domain, err)
@@ -100,7 +104,9 @@ func main() {
 					return
 				}
 
-				resp, err = http.Get(nodeinfoSchemaLink)
+				resp, err = (&http.Client{
+					Timeout: RequestTimeout,
+				}).Get(nodeinfoSchemaLink)
 				if err != nil {
 					noAvailableNodeInfoSchemaList = append(noAvailableNodeInfoSchemaList, domain)
 					log.Printf("[%s] 's schema href is not accessible with error: %v.", domain, err)
