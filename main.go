@@ -30,12 +30,12 @@ func main() {
 
 	var unresolvedList []string
 	var notFunctioningList []string
-	wrongCodeList := make(map[string]int) // domain -> http code (unexpected)
+	var wrongCodeList []DomainErrorStatusWithCode // domain -> http code (unexpected)
 
 	var misformattedNodeInfoListList []string
 	var noAvailableNodeInfoSchemaList []string
 	var misformattedNodeInfoSchemaList []string
-	validList := make(map[string]NodeInfoSchema)
+	var validList []DomainValidWithNodeinfo
 
 	var wg sync.WaitGroup
 
@@ -71,7 +71,12 @@ func main() {
 					log.Printf("[%s] is not functioning with error: %v.", domain, err)
 					return
 				} else if resp.StatusCode != http.StatusOK {
-					wrongCodeList[domain] = resp.StatusCode
+					wrongCodeList = append(wrongCodeList, DomainErrorStatusWithCode{
+						DomainErrorStatus: DomainErrorStatus{
+							Domain: domain,
+						},
+						Code: resp.StatusCode,
+					})
 					log.Printf("[%s] is [RETURNING %d].", domain, resp.StatusCode)
 					return
 				}
@@ -122,7 +127,10 @@ func main() {
 				}
 
 				// Finally this instance can be marked as valid
-				validList[domain] = infoSchema
+				validList = append(validList, DomainValidWithNodeinfo{
+					Domain:   domain,
+					NodeInfo: infoSchema,
+				})
 			}()
 		}
 	}
@@ -161,10 +169,10 @@ func main() {
 	result.NoAvailableNodeInfoSchema = InheritStatus(lastTimeResult.NoAvailableNodeInfoSchema, noAvailableNodeInfoSchemaList, currentTime)
 	result.MisformattedNodeInfoSchema = InheritStatus(lastTimeResult.MisformattedNodeInfoSchema, misformattedNodeInfoSchemaList, currentTime)
 
-	for domain, nodeinfo := range validList {
+	for _, validDomain := range validList {
 		result.Valid = append(result.Valid, DomainValidWithNodeinfo{
-			Domain:   domain,
-			NodeInfo: nodeinfo,
+			Domain:   validDomain.Domain,
+			NodeInfo: validDomain.NodeInfo,
 		})
 	}
 
@@ -204,20 +212,20 @@ func InheritStatus(oldList []DomainErrorStatus, currentList []string, currentTim
 	return newList
 }
 
-func InheritStatusAndCode(oldList []DomainErrorStatusWithCode, currentList map[string]int, currentTime time.Time) []DomainErrorStatusWithCode {
+func InheritStatusAndCode(oldList []DomainErrorStatusWithCode, currentList []DomainErrorStatusWithCode, currentTime time.Time) []DomainErrorStatusWithCode {
 	var newList []DomainErrorStatusWithCode
-	for errDomain, errCode := range currentList {
+	for _, errDomain := range currentList {
 		dErr := DomainErrorStatusWithCode{
 			DomainErrorStatus: DomainErrorStatus{
-				Domain: errDomain,
+				Domain: errDomain.Domain,
 				Since:  currentTime,
 			},
-			Code: errCode,
+			Code: errDomain.Code,
 		}
 		// Find if it's first time or has been a while
 		if len(oldList) > 0 {
 			for _, oldErrRecord := range oldList {
-				if oldErrRecord.Domain == errDomain && oldErrRecord.Code == errCode {
+				if oldErrRecord.Domain == errDomain.Domain && oldErrRecord.Code == errDomain.Code {
 					dErr.Since = oldErrRecord.Since
 					break
 				}
