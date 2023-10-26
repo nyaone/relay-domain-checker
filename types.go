@@ -8,7 +8,7 @@ type NodeInfoSchema struct {
 	Software struct {
 		Name       string  `json:"name"`
 		Version    string  `json:"version"`
-		Repository *string `json:"repository,omitempty"`
+		Repository *string `json:"repository,omitempty,omitempty"`
 	} `json:"software"`
 	Protocols []string `json:"protocols"`
 	//Services          any      `json:"services"`
@@ -16,11 +16,11 @@ type NodeInfoSchema struct {
 	Usage             struct {
 		Users struct {
 			Total          uint64  `json:"total"`
-			ActiveHalfyear *uint64 `json:"activeHalfyear"`
-			ActiveMonth    *uint64 `json:"activeMonth"`
+			ActiveHalfyear *uint64 `json:"activeHalfyear,omitempty"`
+			ActiveMonth    *uint64 `json:"activeMonth,omitempty"`
 		} `json:"users"`
-		LocalPosts    *uint64 `json:"localPosts"`
-		LocalComments *uint64 `json:"localComments"`
+		LocalPosts    *uint64 `json:"localPosts,omitempty"`
+		LocalComments *uint64 `json:"localComments,omitempty"`
 	} `json:"usage"`
 	//Metadata any `json:"metadata"`
 }
