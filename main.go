@@ -30,12 +30,12 @@ func main() {
 
 	var unresolvedList []string
 	var notFunctioningList []string
-	var wrongCodeList []DomainErrorStatusWithCode // domain -> http code (unexpected)
+	var wrongCodeList []domainWithErrorCode
 
 	var misformattedNodeInfoListList []string
 	var noAvailableNodeInfoSchemaList []string
 	var misformattedNodeInfoSchemaList []string
-	var validList []DomainValidWithNodeinfo
+	var validList []domainWithValidNodeinfo
 
 	var wg sync.WaitGroup
 
@@ -71,11 +71,9 @@ func main() {
 					log.Printf("[%s] is not functioning with error: %v.", domain, err)
 					return
 				} else if resp.StatusCode != http.StatusOK {
-					wrongCodeList = append(wrongCodeList, DomainErrorStatusWithCode{
-						DomainErrorStatus: DomainErrorStatus{
-							Domain: domain,
-						},
-						Code: resp.StatusCode,
+					wrongCodeList = append(wrongCodeList, domainWithErrorCode{
+						Domain: domain,
+						Code:   resp.StatusCode,
 					})
 					log.Printf("[%s] is [RETURNING %d].", domain, resp.StatusCode)
 					return
@@ -127,7 +125,7 @@ func main() {
 				}
 
 				// Finally this instance can be marked as valid
-				validList = append(validList, DomainValidWithNodeinfo{
+				validList = append(validList, domainWithValidNodeinfo{
 					Domain:   domain,
 					NodeInfo: infoSchema,
 				})
@@ -169,12 +167,11 @@ func main() {
 	result.NoAvailableNodeInfoSchema = InheritStatus(lastTimeResult.NoAvailableNodeInfoSchema, noAvailableNodeInfoSchemaList, currentTime)
 	result.MisformattedNodeInfoSchema = InheritStatus(lastTimeResult.MisformattedNodeInfoSchema, misformattedNodeInfoSchemaList, currentTime)
 
+	validResults := make(ResultValidWithNodeInfo)
 	for _, validDomain := range validList {
-		result.Valid = append(result.Valid, DomainValidWithNodeinfo{
-			Domain:   validDomain.Domain,
-			NodeInfo: validDomain.NodeInfo,
-		})
+		validResults[validDomain.Domain] = validDomain.NodeInfo
 	}
+	result.Valid = validResults
 
 	resultBytes, err := json.Marshal(&result)
 	if err != nil {
@@ -191,47 +188,41 @@ func main() {
 
 }
 
-func InheritStatus(oldList []DomainErrorStatus, currentList []string, currentTime time.Time) []DomainErrorStatus {
-	var newList []DomainErrorStatus
+func InheritStatus(oldList ResultErrRecord, currentList []string, currentTime time.Time) ResultErrRecord {
+	newList := make(ResultErrRecord)
 	for _, errDomain := range currentList {
-		dErr := DomainErrorStatus{
-			Domain: errDomain,
-			Since:  currentTime,
-		}
+		dErr := currentTime
 		// Find if it's first time or has been a while
 		if len(oldList) > 0 {
-			for _, oldErrRecord := range oldList {
-				if oldErrRecord.Domain == errDomain {
-					dErr.Since = oldErrRecord.Since
+			for oldErrDomain, oldErrSince := range oldList {
+				if oldErrDomain == errDomain {
+					newList[errDomain] = oldErrSince
 					break
 				}
 			}
 		}
-		newList = append(newList, dErr)
+		newList[errDomain] = dErr
 	}
 	return newList
 }
 
-func InheritStatusAndCode(oldList []DomainErrorStatusWithCode, currentList []DomainErrorStatusWithCode, currentTime time.Time) []DomainErrorStatusWithCode {
-	var newList []DomainErrorStatusWithCode
+func InheritStatusAndCode(oldList ResultErrRecordWithCode, currentList []domainWithErrorCode, currentTime time.Time) ResultErrRecordWithCode {
+	newList := make(ResultErrRecordWithCode)
 	for _, errDomain := range currentList {
-		dErr := DomainErrorStatusWithCode{
-			DomainErrorStatus: DomainErrorStatus{
-				Domain: errDomain.Domain,
-				Since:  currentTime,
-			},
-			Code: errDomain.Code,
+		dErr := ErrorStatusWithCode{
+			Code:  errDomain.Code,
+			Since: currentTime,
 		}
 		// Find if it's first time or has been a while
 		if len(oldList) > 0 {
-			for _, oldErrRecord := range oldList {
-				if oldErrRecord.Domain == errDomain.Domain && oldErrRecord.Code == errDomain.Code {
+			for oldErrDomain, oldErrRecord := range oldList {
+				if oldErrDomain == errDomain.Domain && oldErrRecord.Code == errDomain.Code {
 					dErr.Since = oldErrRecord.Since
 					break
 				}
 			}
 		}
-		newList = append(newList, dErr)
+		newList[errDomain.Domain] = dErr
 	}
 	return newList
 }

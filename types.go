@@ -32,35 +32,38 @@ type NodeInfoList struct {
 	} `json:"links"`
 }
 
-type DomainErrorStatus struct {
-	Domain string    `json:"domain"`
-	Since  time.Time `json:"since"`
+type ErrorStatusWithCode struct {
+	Since time.Time `json:"since"`
+	Code  int       `json:"code"`
 }
 
-type DomainErrorStatusWithCode struct {
-	DomainErrorStatus
-
-	Code int `json:"code"`
-}
-
-type DomainValidWithNodeinfo struct {
-	Domain   string         `json:"domain"`
-	NodeInfo NodeInfoSchema `json:"nodeinfo"`
-}
+type ResultErrRecord = map[string]time.Time
+type ResultErrRecordWithCode = map[string]ErrorStatusWithCode
+type ResultValidWithNodeInfo = map[string]NodeInfoSchema
 
 type ResultFileFormat struct {
 	CollectedAt time.Time `json:"collected_at"`
 
 	// Not working
-	Unresolved     []DomainErrorStatus         `json:"unresolved"`
-	NotFunctioning []DomainErrorStatus         `json:"not_functioning"`
-	WrongCode      []DomainErrorStatusWithCode `json:"wrong_code"`
+	Unresolved     ResultErrRecord         `json:"unresolved"`
+	NotFunctioning ResultErrRecord         `json:"not_functioning"`
+	WrongCode      ResultErrRecordWithCode `json:"wrong_code"`
 
 	// Working but failed to get node info
-	MisformattedNodeInfoList   []DomainErrorStatus `json:"misformatted_nodeinfo_list"`
-	NoAvailableNodeInfoSchema  []DomainErrorStatus `json:"no_available_nodeinfo_schema"`
-	MisformattedNodeInfoSchema []DomainErrorStatus `json:"misformatted_nodeinfo_schema"`
+	MisformattedNodeInfoList   ResultErrRecord `json:"misformatted_nodeinfo_list"`
+	NoAvailableNodeInfoSchema  ResultErrRecord `json:"no_available_nodeinfo_schema"`
+	MisformattedNodeInfoSchema ResultErrRecord `json:"misformatted_nodeinfo_schema"`
 
 	// Fully functional
-	Valid []DomainValidWithNodeinfo `json:"valid"`
+	Valid ResultValidWithNodeInfo `json:"valid"`
+}
+
+// Temp structures
+type domainWithErrorCode struct {
+	Domain string
+	Code   int
+}
+type domainWithValidNodeinfo struct {
+	Domain   string
+	NodeInfo NodeInfoSchema
 }
