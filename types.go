@@ -6,21 +6,21 @@ import "time"
 type NodeInfoSchema struct {
 	//Version  string `json:"version"`
 	Software struct {
-		Name       string  `json:"name"`
-		Version    string  `json:"version"`
-		Repository *string `json:"repository,omitempty,omitempty"`
+		Name    string `json:"name"`
+		Version string `json:"version"`
+		//Repository *string `json:"repository,omitempty,omitempty"`
 	} `json:"software"`
-	Protocols []string `json:"protocols"`
+	//Protocols []string `json:"protocols"`
 	//Services          any      `json:"services"`
 	OpenRegistrations bool `json:"openRegistrations"`
 	Usage             struct {
 		Users struct {
-			Total          uint64  `json:"total"`
-			ActiveHalfyear *uint64 `json:"activeHalfyear,omitempty"`
-			ActiveMonth    *uint64 `json:"activeMonth,omitempty"`
+			Total uint64 `json:"total"`
+			//ActiveHalfyear *uint64 `json:"activeHalfyear,omitempty"`
+			//ActiveMonth    *uint64 `json:"activeMonth,omitempty"`
 		} `json:"users"`
-		LocalPosts    *uint64 `json:"localPosts,omitempty"`
-		LocalComments *uint64 `json:"localComments,omitempty"`
+		LocalPosts *uint64 `json:"localPosts,omitempty"`
+		//LocalComments *uint64 `json:"localComments,omitempty"`
 	} `json:"usage"`
 	//Metadata any `json:"metadata"`
 }
