@@ -4,15 +4,15 @@ import "time"
 
 // NodeInfoSchema : Refer to https://nodeinfo.diaspora.software/schema.html
 type NodeInfoSchema struct {
-	Version  string `json:"version"`
+	//Version  string `json:"version"`
 	Software struct {
 		Name       string  `json:"name"`
 		Version    string  `json:"version"`
 		Repository *string `json:"repository,omitempty"`
 	} `json:"software"`
-	Protocols         []string `json:"protocols"`
-	Services          any      `json:"services"`
-	OpenRegistrations bool     `json:"openRegistrations"`
+	Protocols []string `json:"protocols"`
+	//Services          any      `json:"services"`
+	OpenRegistrations bool `json:"openRegistrations"`
 	Usage             struct {
 		Users struct {
 			Total          uint64  `json:"total"`
@@ -22,7 +22,7 @@ type NodeInfoSchema struct {
 		LocalPosts    *uint64 `json:"localPosts"`
 		LocalComments *uint64 `json:"localComments"`
 	} `json:"usage"`
-	Metadata any `json:"metadata"`
+	//Metadata any `json:"metadata"`
 }
 
 type NodeInfoList struct {
