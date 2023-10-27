@@ -22,7 +22,10 @@ type NodeInfoSchema struct {
 		LocalPosts *uint64 `json:"localPosts,omitempty"`
 		//LocalComments *uint64 `json:"localComments,omitempty"`
 	} `json:"usage"`
-	//Metadata any `json:"metadata"`
+	Metadata struct {
+		NodeName        *string `json:"nodeName,omitempty"`
+		NodeDescription *string `json:"nodeDescription,omitempty"`
+	} `json:"metadata"`
 }
 
 type NodeInfoList struct {
