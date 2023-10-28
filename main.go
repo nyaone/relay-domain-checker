@@ -79,7 +79,7 @@ func main() {
 					return
 				}
 
-				log.Printf("[%s] is valid, gathering nodeinfo.", domain)
+				log.Printf("[%s] seems to be valid, gathering nodeinfo.", domain)
 
 				// Bind nodeinfo list to json
 				var infoList NodeInfoList
@@ -136,11 +136,12 @@ func main() {
 	wg.Wait()
 
 	log.Printf(
-		"Found %d unresolved, %d not functioning, %d wrong code, %d is still valid",
+		"Found %d unresolved, %d not functioning, %d wrong code, %d + %d + %d unknown, %d is still valid",
 		len(unresolvedList),
 		len(notFunctioningList),
 		len(wrongCodeList),
-		len(misformattedNodeInfoListList)+len(noAvailableNodeInfoSchemaList)+len(misformattedNodeInfoSchemaList)+len(validList),
+		len(misformattedNodeInfoListList), len(noAvailableNodeInfoSchemaList), len(misformattedNodeInfoSchemaList),
+		len(validList),
 	)
 
 	// Read last time result
